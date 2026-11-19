@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Firma y sello de documentos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* VOICE: TRAMA GADSC, modo claro de trámites; sereno, preciso, trato de usted.
+   IDEA: el escritorio de un notario: a la izquierda su firma y su sello, al centro el documento.
+   PICTURE: el propio documento abierto; vacío, una hoja dibujada en trama de semitono.
+   COLOUR and TYPE: verde 600 de acción, tintas verdosas, lima solo en el foco; Geist + Geist Mono.
+   LAYOUT: barra sólida, columna de 340 px con firma y sello, visor del documento; apilado bajo 860 px. */
+:root{color-scheme:light dark;
+--fondo:light-dark(#F7F9F8,#0B120E);--sup:light-dark(#FFFFFF,#131A16);--sup2:light-dark(#EDF0EE,#1E2622);
+--texto:light-dark(#131A16,#EDF0EE);--texto2:light-dark(#465049,#939C96);
+--accion:light-dark(#00733B,#85BB42);--accion-h:light-dark(#005B2E,#9DCA63);--sobre:light-dark(#FFFFFF,#0B120E);
+--borde:light-dark(#DBE0DC,#2C3531);--bctl:#6B756E;--foco:#85BB42;--foco-l:light-dark(#00733B,#85BB42);
+--trama:light-dark(#00733B,rgba(133,187,66,.35));--sombra:light-dark(#002E18,#2C3531);--velo:light-dark(rgba(19,26,22,.56),rgba(11,18,14,.72));
+--error:#C7362E;--exito:#128A4E;
+--sans:"Geist","Helvetica Neue",Arial,sans-serif;--mono:"Geist Mono",ui-monospace,Menlo,monospace}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+body{margin:0;background:var(--fondo);color:var(--texto);font:16px/1.55 var(--sans);overflow-x:clip}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--foco-l);outline-offset:0;box-shadow:0 0 0 4px var(--foco)}
+svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.bar{position:sticky;top:0;z-index:20;height:80px;display:flex;align-items:center;gap:16px;padding:0 max(3vw,16px);background:var(--sup);border-bottom:1px solid var(--borde)}
+.bar h1{font-size:22px;line-height:1.2;letter-spacing:-.01em;font-weight:600;margin:0;flex:1}
+.bar h1 small{display:block;font:400 13px/1.4 var(--sans);color:var(--texto2);letter-spacing:.01em}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border-radius:8px;border:1px solid var(--bctl);background:var(--sup);cursor:pointer;font-weight:600;font-size:15px;transition:transform .1s}
+.btn:hover{background:var(--sup2)}.btn:active{transform:scale(.97)}
+.btn.p{background:var(--accion);border-color:var(--accion);color:var(--sobre)}.btn.p:hover{background:var(--accion-h)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.btn.q{border-color:transparent;background:transparent;padding:0 10px}
+.btn.q:hover{background:var(--sup2)}
+.wrap{display:grid;grid-template-columns:340px minmax(0,1fr);min-height:calc(100vh - 80px)}
+aside{background:var(--sup);border-right:1px solid var(--borde);padding:24px;display:flex;flex-direction:column;gap:24px}
+.sob{font-size:12px;line-height:1.3;letter-spacing:.09em;font-weight:600;text-transform:uppercase;color:var(--texto2);margin:0 0 8px}
+.slot{border:1px solid var(--borde);border-radius:8px;overflow:hidden;background:var(--sup)}
+.slot .prev{height:132px;display:grid;place-items:center;padding:12px;background:conic-gradient(var(--sup2) 25%,var(--sup) 0 50%,var(--sup2) 0 75%,var(--sup) 0) 0 0/16px 16px;cursor:pointer}
+.slot .prev img{max-width:100%;max-height:108px;object-fit:contain}
+.slot .prev .vacio{color:var(--texto2);font-size:14px;text-align:center;display:grid;justify-items:center;gap:6px}
+.slot .pie{display:flex;flex-wrap:wrap;gap:4px;align-items:center;padding:8px;border-top:1px solid var(--borde)}
+.slot .pie .t{font-weight:600;font-size:15px;margin-right:auto;padding-left:8px}
+.chk{display:flex;align-items:center;gap:10px;padding:8px 12px 10px;font-size:14px;color:var(--texto2);cursor:pointer}
+.chk input{width:18px;height:18px;accent-color:#00733B;margin:0}
+.campo{display:flex;gap:8px}
+.campo input{flex:1;height:44px;border:1px solid var(--bctl);border-radius:8px;padding:0 12px;font-size:16px;background:var(--sup);font-family:var(--mono)}
+.colocar{display:grid;gap:8px}
+.colocar .btn{justify-content:flex-start}
+.nota{font-size:13px;line-height:1.45;color:var(--texto2);margin:auto 0 0;border-top:1px solid var(--borde);padding-top:16px}
+main{position:relative;display:flex;flex-direction:column;min-height:0}
+.tool{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:12px max(2vw,16px);border-bottom:1px solid var(--borde);background:var(--fondo);position:sticky;top:80px;z-index:10}
+.tool .nom{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:40ch}
+.tool .meta{font:13px/1.45 var(--mono);color:var(--texto2);margin-right:auto}
+.visor{flex:1;padding:32px max(2vw,16px) 96px;display:flex;flex-direction:column;align-items:center;gap:32px}
+.visor.drop{background:var(--sup2)}
+.hoja{position:relative;width:min(100%,860px);background:#fff;touch-action:none;user-select:none}
+.hoja::after{content:"";position:absolute;inset:0;transform:translate(4px,4px);z-index:-1;background:conic-gradient(var(--sombra) 25%,transparent 0) 0 0/8px 8px}
+.hoja canvas{display:block;width:100%;height:auto}
+.hoja .num{position:absolute;left:0;top:-24px;font:13px/1.45 var(--mono);color:var(--texto2)}
+.it{position:absolute;cursor:grab;touch-action:none}
+.it img{display:block;width:100%;height:100%;pointer-events:none}
+.it.sel{outline:2px solid var(--foco-l);box-shadow:0 0 0 4px var(--foco);cursor:grabbing}
+.it .h{display:none;position:absolute;right:-11px;bottom:-11px;width:22px;height:22px;background:var(--sup);border:2px solid var(--foco-l);border-radius:4px;cursor:nwse-resize}
+.it.sel .h{display:block}
+.it .mini{display:none;position:absolute;left:0;top:-54px;gap:4px;background:#131A16;color:#F7F9F8;border-radius:8px;padding:4px;white-space:nowrap;z-index:5}
+.it.sel .mini{display:flex}
+.it .mini button{border:0;background:transparent;color:inherit;min-height:36px;padding:0 10px;border-radius:4px;display:inline-flex;align-items:center;gap:6px;font-size:14px;cursor:pointer}
+.it .mini button:hover{background:#2C3531}
+.vaciodoc{width:min(100%,640px);margin-top:4vh;display:grid;justify-items:center;gap:20px;text-align:center;padding:40px 24px;border:1px dashed var(--bctl);border-radius:8px;background:var(--sup)}
+.vaciodoc h2{font-size:28px;line-height:1.2;letter-spacing:-.015em;margin:0;font-weight:600;text-wrap:balance}
+.vaciodoc p{margin:0;color:var(--texto2);max-width:46ch}
+.vaciodoc svg.hojasvg{width:200px;height:250px}
+.estado{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:40;background:#131A16;color:#F7F9F8;padding:12px 18px;border-radius:8px;display:none;align-items:center;gap:10px;font-size:15px;max-width:calc(100vw - 32px)}
+.estado.on{display:flex}.estado i{width:8px;height:8px;flex:none;background:var(--exito)}.estado.err i{background:var(--error)}
+.modal{position:fixed;inset:0;z-index:50;background:var(--velo);display:none;place-items:center;padding:16px}
+.modal.on{display:grid}
+.caja{background:var(--sup);border-radius:8px;padding:24px;width:min(100%,640px);display:grid;gap:16px;position:relative}
+.caja::after{content:"";position:absolute;inset:0;transform:translate(16px,16px);z-index:-1;background:conic-gradient(var(--sombra) 50%,transparent 0) 0 0/8px 8px;opacity:.5}
+.caja h3{margin:0;font-size:22px;font-weight:600;letter-spacing:-.01em}
+.pad{width:100%;height:220px;background:#fff;border:1px solid var(--bctl);border-radius:8px;touch-action:none;cursor:crosshair}
+.fila{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;align-items:center}
+.fila .tintas{margin-right:auto;display:flex;gap:8px;align-items:center;font-size:14px;color:var(--texto2)}
+.tinta{width:32px;height:32px;border-radius:4px;border:2px solid var(--borde);cursor:pointer}
+.tinta[aria-pressed=true]{border-color:var(--foco-l);box-shadow:0 0 0 2px var(--foco)}
+input[type=file]{display:none}
+.login{position:fixed;inset:0;z-index:60;background:var(--fondo);display:grid;place-items:center;padding:16px}
+.login form{width:min(100%,400px);background:var(--sup);border:1px solid var(--borde);border-radius:8px;padding:32px 24px;display:grid;gap:16px;position:relative}
+.login form::after{content:"";position:absolute;inset:0;transform:translate(8px,8px);z-index:-1;background:conic-gradient(var(--sombra) 25%,transparent 0) 0 0/8px 8px}
+.login h2{margin:0;font-size:28px;line-height:1.2;letter-spacing:-.015em;font-weight:600}
+.login p{margin:0;color:var(--texto2);font-size:15px}
+.login label{display:grid;gap:6px;font-size:14px;font-weight:600}
+.login input{height:44px;border:1px solid var(--bctl);border-radius:8px;padding:0 12px;font-size:16px;background:var(--sup);font-weight:400}
+.login .err{color:var(--texto);font-size:14px;display:flex;gap:8px;align-items:center}.login .err i{width:8px;height:8px;background:var(--error)}
+body.bloq .bar,body.bloq .wrap{visibility:hidden}
+body:not(.bloq) .login{display:none}
+@media(max-width:860px){.wrap{grid-template-columns:minmax(0,1fr)}aside{border-right:0;border-bottom:1px solid var(--borde)}
+.slots{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}.nota{margin-top:0}.tool{top:64px}.bar{height:64px}.bar h1 small{display:none}}
+@media(max-width:600px){.bar .btn span{display:none}.bar h1{font-size:18px}.visor{padding-top:24px}}
+@media(prefers-reduced-motion:reduce){.btn{transition:none}.btn:active{transform:none}}
+</style>
+</head>
+<body class="bloq">
+<div class="login"><form id="fLogin" autocomplete="on">
+  <h2>Ingrese al sistema</h2>
+  <p>Firma y sello de documentos · acceso del equipo</p>
+  <label>Usuario<input id="lU" name="username" autocomplete="username" required></label>
+  <label>Contraseña<input id="lP" name="password" type="password" autocomplete="current-password" required></label>
+  <div class="err" id="lErr" hidden><i></i>Usuario o contraseña incorrectos.</div>
+  <button class="btn p" type="submit">Ingresar</button>
+</form></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-up" viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></symbol>
+<symbol id="i-pen" viewBox="0 0 24 24"><path d="M12 20h9M16.4 3.6a2 2 0 0 1 2.8 2.8L7 18.6 3 20l1.4-4z"/></symbol>
+<symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></symbol>
+<symbol id="i-down" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></symbol>
+<symbol id="i-del" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></symbol>
+<symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M4 16V5a1 1 0 0 1 1-1h11"/></symbol>
+<symbol id="i-sello" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/></symbol>
+<symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
+</defs></svg>
+
+<header class="bar">
+  <h1>Firma y sello de documentos<small>Cargue su firma una vez y estámpela en cualquier PDF o imagen</small></h1>
+  <button class="btn" id="bAbrir" aria-label="Abrir documento"><svg class="i"><use href="#i-doc"/></svg><span>Abrir documento</span></button>
+  <button class="btn p" id="bDesc" disabled aria-label="Descargar documento firmado"><svg class="i"><use href="#i-down"/></svg><span>Descargar firmado</span></button>
+</header>
+
+<div class="wrap">
+<aside>
+  <div>
+    <p class="sob">Su firma y sello</p>
+    <div class="slots" style="display:grid;gap:16px">
+      <div class="slot" id="s-firma"></div>
+      <div class="slot" id="s-sello"></div>
+    </div>
+  </div>
+  <div>
+    <p class="sob">Fecha</p>
+    <div class="campo"><input id="fechaTxt" aria-label="Texto de la fecha" autocomplete="off"></div>
+  </div>
+  <div>
+    <p class="sob">Colocar en el documento</p>
+    <div class="colocar">
+      <button class="btn" data-add="firma" disabled><svg class="i"><use href="#i-pen"/></svg>Colocar firma</button>
+      <button class="btn" data-add="sello" disabled><svg class="i"><use href="#i-sello"/></svg>Colocar sello</button>
+      <button class="btn" data-add="fecha" disabled><svg class="i"><use href="#i-cal"/></svg>Colocar fecha</button>
+    </div>
+  </div>
+  <p class="nota">Su firma y su sello se guardan solo en este navegador. Esta herramienta estampa la imagen de la firma; no reemplaza una firma digital con certificado.</p>
+</aside>
+
+<main>
+  <div class="tool" id="tool" hidden>
+    <span class="nom" id="dNom"></span><span class="meta" id="dMeta"></span>
+    <button class="btn q" id="bLimpiar"><svg class="i"><use href="#i-del"/></svg>Quitar todas las marcas</button>
+  </div>
+  <div class="visor" id="visor">
+    <div class="vaciodoc" id="vacio">
+      <svg class="hojasvg" id="hojasvg" viewBox="0 0 200 250" aria-hidden="true"></svg>
+      <h2>Abra el documento que desea firmar</h2>
+      <p>Arrastre aquí un PDF, PNG o JPG. Luego pulse «Colocar firma» o «Colocar sello» y mueva cada marca a su lugar.</p>
+      <button class="btn p" id="bAbrir2"><svg class="i"><use href="#i-doc"/></svg>Abrir documento</button>
+    </div>
+  </div>
+</main>
+</div>
+
+<div class="modal" id="mDib" role="dialog" aria-modal="true" aria-labelledby="mDibT">
+  <div class="caja">
+    <h3 id="mDibT">Dibuje su firma</h3>
+    <canvas class="pad" id="pad"></canvas>
+    <div class="fila">
+      <div class="tintas">Tinta
+        <button class="tinta" data-c="#131A16" style="background:#131A16" aria-pressed="true" aria-label="Tinta negra"></button>
+        <button class="tinta" data-c="#1C3F94" style="background:#1C3F94" aria-pressed="false" aria-label="Tinta azul"></button>
+      </div>
+      <button class="btn q" id="pBorrar">Borrar trazo</button>
+      <button class="btn" id="pCancel">Cancelar</button>
+      <button class="btn p" id="pOk">Guardar firma</button>
+    </div>
+  </div>
+</div>
+
+<div class="estado" id="estado" role="status" aria-live="polite"><i></i><span></span></div>
+<input type="file" id="fDoc" accept="application/pdf,image/png,image/jpeg">
+<input type="file" id="fFirma" accept="image/png,image/jpeg,image/webp,image/svg+xml">
+<input type="file" id="fSello" accept="image/png,image/jpeg,image/webp,image/svg+xml">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script>
+{
+const CLAVE='d4da9d484b4b4be73585909fa95338e8597620ebdb2e0b192ca2d2ad3dc5cab4';
+const entrar=()=>{document.body.classList.remove('bloq')};
+try{if(sessionStorage.getItem('firma-ok')===CLAVE)entrar()}catch(e){}
+document.getElementById('fLogin').addEventListener('submit',async ev=>{ev.preventDefault();
+  const t=document.getElementById('lU').value.trim()+'\n'+document.getElementById('lP').value;
+  const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));
+  const hx=[...new Uint8Array(d)].map(b=>b.toString(16).padStart(2,'0')).join('');
+  if(hx===CLAVE){try{sessionStorage.setItem('firma-ok',CLAVE)}catch(e){}entrar()}else{document.getElementById('lErr').hidden=false}});
+}
+</script>
+<script>
+{
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const MESES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+const hoy=new Date();
+const S={a:{firma:null,sello:null},doc:null,items:[],sel:null,seq:0};
+const ANCHO={firma:.28,sello:.2,fecha:.2};
+
+/* almacenamiento local */
+const idb=(()=>{let p;const op=()=>p||(p=new Promise((r,j)=>{const q=indexedDB.open('firma-sello',1);q.onupgradeneeded=()=>q.result.createObjectStore('a');q.onsuccess=()=>r(q.result);q.onerror=()=>j(q.error)}));
+  const tx=async(m,f)=>{try{const d=await op();return await new Promise(r=>{const q=f(d.transaction('a',m).objectStore('a'));q.onsuccess=()=>r(q.result);q.onerror=()=>r(null)})}catch(e){return null}};
+  return{get:k=>tx('readonly',s=>s.get(k)),set:(k,v)=>tx('readwrite',s=>s.put(v,k)),del:k=>tx('readwrite',s=>s.delete(k))}})();
+
+const estado=(t,err)=>{const e=$('#estado');e.querySelector('span').textContent=t;e.classList.toggle('err',!!err);e.classList.add('on');clearTimeout(estado.t);estado.t=setTimeout(()=>e.classList.remove('on'),4200)};
+const cargarImg=src=>new Promise((r,j)=>{const i=new Image();i.onload=()=>r(i);i.onerror=j;i.src=src});
+const leerURL=f=>new Promise((r,j)=>{const x=new FileReader();x.onload=()=>r(x.result);x.onerror=j;x.readAsDataURL(f)});
+
+/* procesa una imagen: reduce, quita fondo claro y recorta bordes vacíos */
+async function procesar(orig,limpiar){
+  const im=await cargarImg(orig);const k=Math.min(1,1400/Math.max(im.naturalWidth||1,im.naturalHeight||1));
+  const W=Math.max(1,Math.round((im.naturalWidth||600)*k)),H=Math.max(1,Math.round((im.naturalHeight||300)*k));
+  const c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');x.drawImage(im,0,0,W,H);
+  const d=x.getImageData(0,0,W,H),p=d.data;let x0=W,y0=H,x1=-1,y1=-1;
+  for(let i=0;i<p.length;i+=4){
+    if(limpiar){const l=.299*p[i]+.587*p[i+1]+.114*p[i+2];if(l>=232)p[i+3]=0;else if(l>185)p[i+3]=Math.round(p[i+3]*(232-l)/47)}
+    if(p[i+3]>10){const n=i/4,px=n%W,py=(n-px)/W;if(px<x0)x0=px;if(px>x1)x1=px;if(py<y0)y0=py;if(py>y1)y1=py}}
+  x.putImageData(d,0,0);if(x1<0){x0=0;y0=0;x1=W-1;y1=H-1}
+  const pad=6,cw=x1-x0+1+pad*2,ch=y1-y0+1+pad*2,o=document.createElement('canvas');o.width=cw;o.height=ch;
+  o.getContext('2d').drawImage(c,x0-pad,y0-pad,cw,ch,0,0,cw,ch);
+  return{url:o.toDataURL('image/png'),r:ch/cw};
+}
+
+async function guardarActivo(k,orig,limpiar){
+  const pr=await procesar(orig,limpiar);S.a[k]={orig,limpiar,...pr};
+  await idb.set(k,{orig,limpiar});pintarSlot(k);botones();
+  S.items.filter(i=>i.k===k).forEach(i=>{i.url=pr.url;i.r=pr.r;});pintarItems();
+}
+
+const NOM={firma:'Firma',sello:'Sello'};
+function pintarSlot(k){
+  const a=S.a[k],el=$('#s-'+k);
+  el.innerHTML=`<div class="prev" role="button" tabindex="0" data-subir="${k}" aria-label="Cargar ${NOM[k].toLowerCase()}">${a?`<img alt="${NOM[k]} cargada" src="${a.url}">`:`<div class="vacio"><svg class="i"><use href="#i-up"/></svg>Cargue la imagen de su ${k}<br>PNG, JPG o SVG</div>`}</div>
+  <div class="pie"><span class="t">${NOM[k]}</span>
+   <button class="btn q" data-subir="${k}" aria-label="${a?'Reemplazar':'Cargar'} ${k}"><svg class="i"><use href="#i-up"/></svg>${a?'Reemplazar':'Cargar'}</button>
+   ${k==='firma'?`<button class="btn q" data-dibujar aria-label="Dibujar firma"><svg class="i"><use href="#i-pen"/></svg>Dibujar</button>`:''}
+   ${a?`<button class="btn q" data-borrar="${k}" aria-label="Quitar ${k}"><svg class="i"><use href="#i-del"/></svg></button>`:''}</div>
+  ${a?`<label class="chk"><input type="checkbox" data-limpiar="${k}" ${a.limpiar?'checked':''}>Quitar fondo blanco</label>`:''}`;
+}
+
+/* imagen de la fecha */
+function fechaURL(){
+  const t=($('#fechaTxt').value||'').trim()||'Fecha';const c=document.createElement('canvas'),x=c.getContext('2d');
+  const f='500 56px "Geist Mono", ui-monospace, monospace';x.font=f;const w=Math.ceil(x.measureText(t).width)+16;
+  c.width=w;c.height=80;x.font=f;x.fillStyle='#131A16';x.textBaseline='middle';x.fillText(t,8,42);
+  return{url:c.toDataURL('image/png'),r:80/w};
+}
+
+function botones(){
+  const hay=!!S.doc;
+  $$('[data-add]').forEach(b=>{const k=b.dataset.add;b.disabled=!hay||(k!=='fecha'&&!S.a[k])});
+  $('#bDesc').disabled=!hay;
+}
+
+/* documento */
+async function abrirDoc(f){
+  if(!f)return;const pdf=f.type==='application/pdf'||/\.pdf$/i.test(f.name),img=/^image\/(png|jpe?g)$/.test(f.type);
+  if(!pdf&&!img){estado('Formato no admitido. Use PDF, PNG o JPG.',1);return}
+  const v=$('#visor');v.querySelectorAll('.hoja').forEach(h=>h.remove());$('#vacio').hidden=true;S.items=[];S.sel=null;
+  estado('Abriendo '+f.name+'…');
+  try{
+    if(pdf){
+      if(!window.pdfjsLib)throw new Error('lib');
+      const buf=new Uint8Array(await f.arrayBuffer());S.doc={tipo:'pdf',nombre:f.name,bytes:buf.slice(0),hojas:[]};
+      const d=await pdfjsLib.getDocument({data:buf}).promise;
+      for(let n=1;n<=d.numPages;n++){const pg=await d.getPage(n),v1=pg.getViewport({scale:1}),sc=Math.min(3,1800/v1.width),vp=pg.getViewport({scale:sc});
+        const c=document.createElement('canvas');c.width=Math.round(vp.width);c.height=Math.round(vp.height);
+        await pg.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;agregarHoja(c,n,d.numPages)}
+    }else{
+      const url=await leerURL(f),im=await cargarImg(url),c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;
+      c.getContext('2d').drawImage(im,0,0);S.doc={tipo:'img',nombre:f.name,mime:f.type==='image/png'?'image/png':'image/jpeg',img:im,hojas:[]};agregarHoja(c,1,1)}
+    $('#tool').hidden=false;$('#dNom').textContent=f.name;
+    $('#dMeta').textContent=S.doc.hojas.length+(S.doc.hojas.length===1?' página':' páginas');botones();
+    estado('Documento abierto. Pulse «Colocar firma» para empezar.');
+  }catch(e){S.doc=null;$('#vacio').hidden=false;$('#tool').hidden=true;botones();estado('No se pudo abrir el documento. Verifique que el archivo no esté protegido.',1)}
+}
+function agregarHoja(c,n,tot){
+  const h=document.createElement('div');h.className='hoja';h.dataset.p=n-1;h.style.aspectRatio=c.width+'/'+c.height;
+  if(tot>1)h.innerHTML=`<span class="num">Página ${n} de ${tot}</span>`;h.appendChild(c);$('#visor').appendChild(h);S.doc.hojas.push({el:h,w:c.width,h:c.height});
+}
+
+/* marcas */
+function hojaVisible(){
+  let mejor=0,area=-1;const vh=innerHeight;
+  S.doc.hojas.forEach((h,i)=>{const r=h.el.getBoundingClientRect(),a=Math.max(0,Math.min(r.bottom,vh)-Math.max(r.top,0));if(a>area){area=a;mejor=i}});return mejor;
+}
+function agregar(k){
+  if(!S.doc)return;const src=k==='fecha'?fechaURL():S.a[k];if(!src)return;
+  const p=hojaVisible(),h=S.doc.hojas[p],r=h.el.getBoundingClientRect(),w=ANCHO[k],hh=w*src.r*h.w/h.h;
+  const top=Math.max(0,-r.top),bot=Math.min(r.height,innerHeight-r.top);let cy=((top+bot)/2)/r.height;
+  const it={id:++S.seq,k,p,x:(1-w)/2,y:Math.min(Math.max(0,cy-hh/2),1-hh),w,url:src.url,r:src.r};
+  S.items.push(it);S.sel=it.id;pintarItems();
+  estado(k==='fecha'?'Fecha colocada. Arrástrela a su lugar.':(NOM[k]+' colocada. Arrástrela a su lugar y ajuste el tamaño desde la esquina.'));
+}
+function alto(it){const h=S.doc.hojas[it.p];return it.w*it.r*h.w/h.h}
+function pintarItems(){
+  if(!S.doc)return;$$('.it').forEach(e=>e.remove());const multi=S.doc.hojas.length>1;
+  S.items.forEach(it=>{const e=document.createElement('div');e.className='it'+(it.id===S.sel?' sel':'');e.dataset.id=it.id;e.tabIndex=0;
+    e.setAttribute('aria-label',(it.k==='fecha'?'Fecha':NOM[it.k])+' en la página '+(it.p+1));
+    Object.assign(e.style,{left:it.x*100+'%',top:it.y*100+'%',width:it.w*100+'%',height:alto(it)*100+'%'});
+    e.innerHTML=`<img alt="" src="${it.url}"><span class="h" data-h></span><div class="mini">${multi?`<button data-todas><svg class="i"><use href="#i-copy"/></svg>Repetir en todas las páginas</button>`:''}<button data-quitar><svg class="i"><use href="#i-del"/></svg>Quitar</button></div>`;
+    S.doc.hojas[it.p].el.appendChild(e)});
+}
+const buscar=id=>S.items.find(i=>i.id===+id);
+function quitar(id){S.items=S.items.filter(i=>i.id!==id);S.sel=null;pintarItems()}
+function repetir(it){
+  let n=0;S.doc.hojas.forEach((h,p)=>{if(p===it.p||S.items.some(o=>o.p===p&&o.k===it.k&&Math.abs(o.x-it.x)<.01&&Math.abs(o.y-it.y)<.01))return;
+    S.items.push({...it,id:++S.seq,p});n++});pintarItems();estado(n?`Marca repetida en ${n} páginas más.`:'La marca ya está en todas las páginas.');
+}
+
+let arr=null;
+$('#visor').addEventListener('pointerdown',ev=>{
+  if(ev.target.closest('.mini'))return;const e=ev.target.closest('.it');
+  if(!e){if(S.sel){S.sel=null;pintarItems()}return}
+  const it=buscar(e.dataset.id);if(S.sel!==it.id){S.sel=it.id;$$('.it').forEach(x=>x.classList.toggle('sel',x===e))}
+  const r=e.parentElement.getBoundingClientRect();
+  arr={it,e,r,modo:ev.target.hasAttribute('data-h')?'tam':'mover',sx:ev.clientX,sy:ev.clientY,ox:it.x,oy:it.y,ow:it.w};
+  e.setPointerCapture(ev.pointerId);ev.preventDefault();
+});
+addEventListener('pointermove',ev=>{
+  if(!arr)return;const{it,e,r}=arr,dx=(ev.clientX-arr.sx)/r.width,dy=(ev.clientY-arr.sy)/r.height;
+  if(arr.modo==='mover'){const hh=alto(it);it.x=Math.min(Math.max(arr.ox+dx,0),1-it.w);it.y=Math.min(Math.max(arr.oy+dy,0),1-hh)}
+  else{it.w=Math.min(Math.max(arr.ow+dx,.04),1-it.x);if(it.y+alto(it)>1)it.w=(1-it.y)*S.doc.hojas[it.p].h/(it.r*S.doc.hojas[it.p].w)}
+  Object.assign(e.style,{left:it.x*100+'%',top:it.y*100+'%',width:it.w*100+'%',height:alto(it)*100+'%'});
+});
+addEventListener('pointerup',()=>{arr=null});
+$('#visor').addEventListener('click',ev=>{
+  const e=ev.target.closest('.it');if(!e)return;const it=buscar(e.dataset.id);
+  if(ev.target.closest('[data-quitar]'))quitar(it.id);else if(ev.target.closest('[data-todas]'))repetir(it);
+});
+addEventListener('keydown',ev=>{
+  if(ev.key==='Escape'){cerrarPad();return}
+  const it=S.sel&&buscar(S.sel);if(!it||/INPUT|TEXTAREA/.test(document.activeElement.tagName))return;
+  if(ev.key==='Delete'||ev.key==='Backspace'){quitar(it.id);ev.preventDefault();return}
+  const d=ev.shiftKey?.02:.004,m={ArrowLeft:[-d,0],ArrowRight:[d,0],ArrowUp:[0,-d],ArrowDown:[0,d]}[ev.key];
+  if(m){it.x=Math.min(Math.max(it.x+m[0],0),1-it.w);it.y=Math.min(Math.max(it.y+m[1],0),1-alto(it));pintarItems();ev.preventDefault()}
+});
+
+/* exportación */
+const b64=u=>{const s=atob(u.split(',')[1]),a=new Uint8Array(s.length);for(let i=0;i<s.length;i++)a[i]=s.charCodeAt(i);return a};
+async function exportar(){
+  if(!S.doc)return;if(!S.items.length){estado('Coloque al menos una marca antes de descargar.',1);return}
+  const btn=$('#bDesc');btn.disabled=true;let blob,nombre;const base=S.doc.nombre.replace(/\.[^.]+$/,'');
+  try{
+    if(S.doc.tipo==='pdf'){
+      const{PDFDocument,degrees}=PDFLib,pdf=await PDFDocument.load(S.doc.bytes,{ignoreEncryption:true}),pags=pdf.getPages(),cache={};
+      for(const it of S.items){
+        const im=cache[it.url]||(cache[it.url]=await pdf.embedPng(b64(it.url)));const pg=pags[it.p],b=pg.getCropBox(),rot=((pg.getRotation().angle%360)+360)%360;
+        const W0=b.width,H0=b.height,Wd=rot%180?H0:W0,Hd=rot%180?W0:H0,w=it.w*Wd,h=alto(it)*Hd,dx=it.x*Wd,dy=it.y*Hd+h;
+        const m={0:[b.x+dx,b.y+H0-dy],90:[b.x+dy,b.y+dx],180:[b.x+W0-dx,b.y+dy],270:[b.x+W0-dy,b.y+H0-dx]}[rot]||[b.x+dx,b.y+H0-dy];
+        pg.drawImage(im,{x:m[0],y:m[1],width:w,height:h,rotate:degrees(rot)})}
+      blob=new Blob([await pdf.save()],{type:'application/pdf'});nombre=base+'-firmado.pdf';
+    }else{
+      const im=S.doc.img,c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;const x=c.getContext('2d');
+      if(S.doc.mime==='image/jpeg'){x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height)}x.drawImage(im,0,0);
+      for(const it of S.items){const m=await cargarImg(it.url);x.drawImage(m,it.x*c.width,it.y*c.height,it.w*c.width,alto(it)*c.height)}
+      blob=await new Promise(r=>c.toBlob(r,S.doc.mime,.95));nombre=base+'-firmado.'+(S.doc.mime==='image/png'?'png':'jpg');
+    }
+    await guardar(blob,nombre);
+  }catch(e){if(e&&e.code==='declined')estado('Descarga cancelada.');else estado('No se pudo generar el documento firmado. Intente de nuevo.',1)}
+  btn.disabled=false;
+}
+async function guardar(blob,nombre){
+  let dl=null;try{dl=window.claude&&await window.claude.use('downloads')}catch(e){}
+  if(dl){await dl.save({filename:nombre,data:blob});estado('Documento firmado listo: '+nombre);return}
+  const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=nombre;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(u),4000);estado('Documento firmado listo: '+nombre);
+}
+
+/* firma dibujada */
+const pad=$('#pad');let pctx,tinta='#131A16',traz=false,hayTrazo=false;
+function abrirPad(){$('#mDib').classList.add('on');const r=pad.getBoundingClientRect(),dp=devicePixelRatio||1;pad.width=r.width*dp;pad.height=r.height*dp;
+  pctx=pad.getContext('2d');pctx.scale(dp,dp);pctx.lineWidth=2.6;pctx.lineCap='round';pctx.lineJoin='round';hayTrazo=false;$('#pOk').focus()}
+function cerrarPad(){$('#mDib').classList.remove('on')}
+const pt=ev=>{const r=pad.getBoundingClientRect();return[ev.clientX-r.left,ev.clientY-r.top]};
+pad.addEventListener('pointerdown',ev=>{traz=true;hayTrazo=true;pad.setPointerCapture(ev.pointerId);pctx.strokeStyle=tinta;pctx.beginPath();pctx.moveTo(...pt(ev));pctx.lineTo(...pt(ev));pctx.stroke()});
+pad.addEventListener('pointermove',ev=>{if(!traz)return;pctx.lineTo(...pt(ev));pctx.stroke()});
+pad.addEventListener('pointerup',()=>traz=false);
+$('#pBorrar').onclick=()=>{pctx.clearRect(0,0,pad.width,pad.height);hayTrazo=false};
+$('#pCancel').onclick=cerrarPad;
+$('#mDib').addEventListener('click',ev=>{if(ev.target.id==='mDib')cerrarPad()});
+$$('.tinta').forEach(b=>b.onclick=()=>{tinta=b.dataset.c;$$('.tinta').forEach(x=>x.setAttribute('aria-pressed',x===b))});
+$('#pOk').onclick=async()=>{if(!hayTrazo){estado('Dibuje su firma antes de guardarla.',1);return}await guardarActivo('firma',pad.toDataURL('image/png'),false);cerrarPad();estado('Firma guardada en este navegador.')};
+
+/* eventos de la columna */
+$('aside').addEventListener('click',ev=>{
+  const s=ev.target.closest('[data-subir]'),d=ev.target.closest('[data-dibujar]'),b=ev.target.closest('[data-borrar]'),a=ev.target.closest('[data-add]');
+  if(s)$(s.dataset.subir==='firma'?'#fFirma':'#fSello').click();
+  else if(d)abrirPad();
+  else if(b){const k=b.dataset.borrar;S.a[k]=null;idb.del(k);pintarSlot(k);botones();estado(NOM[k]+' quitada de este navegador.')}
+  else if(a)agregar(a.dataset.add);
+});
+$('aside').addEventListener('keydown',ev=>{const s=ev.target.closest('.prev');if(s&&(ev.key==='Enter'||ev.key===' ')){ev.preventDefault();s.click()}});
+$('aside').addEventListener('change',ev=>{const k=ev.target.dataset.limpiar;if(k&&S.a[k])guardarActivo(k,S.a[k].orig,ev.target.checked)});
+for(const k of ['firma','sello'])$(k==='firma'?'#fFirma':'#fSello').addEventListener('change',async ev=>{
+  const f=ev.target.files[0];ev.target.value='';if(!f)return;
+  try{await guardarActivo(k,await leerURL(f),true);estado(NOM[k]+' guardada en este navegador.')}catch(e){estado('No se pudo leer la imagen. Use PNG, JPG o SVG.',1)}});
+$('#fDoc').addEventListener('change',ev=>{abrirDoc(ev.target.files[0]);ev.target.value=''});
+$('#bAbrir').onclick=$('#bAbrir2').onclick=()=>$('#fDoc').click();
+$('#bDesc').onclick=exportar;
+$('#bLimpiar').onclick=()=>{S.items=[];S.sel=null;pintarItems();estado('Se quitaron todas las marcas.')};
+$('#fechaTxt').value=hoy.getDate()+' '+MESES[hoy.getMonth()]+' '+hoy.getFullYear();
+const v=$('#visor');
+['dragenter','dragover'].forEach(t=>v.addEventListener(t,ev=>{ev.preventDefault();v.classList.add('drop')}));
+['dragleave','drop'].forEach(t=>v.addEventListener(t,ev=>{ev.preventDefault();if(t==='drop'||!v.contains(ev.relatedTarget))v.classList.remove('drop')}));
+v.addEventListener('drop',ev=>abrirDoc(ev.dataTransfer.files[0]));
+
+/* hoja de trama del estado vacío */
+let sq='';for(let y=0;y<26;y++)for(let x=0;x<20;x++){const d=Math.max(0,1-(x+y*1.1)/30);if(d<.08)continue;const s=8*Math.sqrt(d);sq+=`<rect x="${x*8+20+(8-s)/2}" y="${y*8+20+(8-s)/2}" width="${s.toFixed(2)}" height="${s.toFixed(2)}"/>`}
+$('#hojasvg').innerHTML=`<rect x="12" y="12" width="176" height="226" rx="2" fill="#fff" stroke="var(--bctl)"/><g fill="var(--trama)" opacity=".9">${sq}</g><path d="M100 196c10-14 18-18 22-10s-6 12 4 2 14-8 18-2 8 4 20-6" fill="none" stroke="#131A16" stroke-width="2.4" stroke-linecap="round"/>`;
+
+/* estado inicial */
+(async()=>{for(const k of ['firma','sello']){const g=await idb.get(k);if(g&&g.orig){try{const pr=await procesar(g.orig,g.limpiar);S.a[k]={...g,...pr}}catch(e){}}pintarSlot(k)}botones()})();
+pintarSlot('firma');pintarSlot('sello');
+}
+</script>
+</body>
+</html>
